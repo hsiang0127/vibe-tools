@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天吃什麼？選擇障礙終結復古扭蛋機</title>
+    <!-- 引入 Google Fonts 圓體字與復古英文字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- 引入輕量級彩帶特效庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-cream: #FFF8E7;
+            --retro-red: #E63946;
+            --retro-red-dark: #B81D2A;
+            --mustard: #FFB703;
+            --teal: #2A9D8F;
+            --dark-ink: #1D2D44;
+            --border-thick: 4px solid #1D2D44;
+            --shadow-retro: 6px 6px 0px #1D2D44;
+            --shadow-sm: 3px 3px 0px #1D2D44;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-cream);
+            background-image: radial-gradient(#E5D9B6 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            font-family: 'Noto Sans TC', sans-serif;
+            color: var(--dark-ink);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 頂部標題與狀態列 */
+        header {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 24px;
+            background: var(--mustard);
+            border: var(--border-thick);
+            box-shadow: var(--shadow-retro);
+            border-radius: 16px;
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--dark-ink);
+            text-shadow: 2px 2px 0px #FFF;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #FFF;
+            border: 3px solid var(--dark-ink);
+            box-shadow: var(--shadow-sm);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge span.count {
+            color: var(--retro-red);
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+        }
+
+        .dev-btn {
+            background: var(--dark-ink);
+            color: #FFF;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.1s;
+        }
+        .dev-btn:hover { background: #334e75; }
+        .dev-btn:active { transform: scale(0.95); }
+
+        /* 主內容雙欄佈局 */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 28px;
+            max-width: 960px;
+            width: 100%;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #FFF;
+            border: var(--border-thick);
+            box-shadow: var(--shadow-retro);
+            border-radius: 18px;
+            padding: 22px;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 3px dashed var(--dark-ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 預算按鈕區 */
+        .tier-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tier-btn {
+            background: #FFF8E7;
+            border: 3px solid var(--dark-ink);
+            box-shadow: var(--shadow-sm);
+            border-radius: 12px;
+            padding: 12px 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: inherit;
+        }
+
+        .tier-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px var(--dark-ink);
+            background: #FFF2CC;
+        }
+
+        .tier-btn.active {
+            background: var(--retro-red);
+            color: #FFF;
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--dark-ink);
+        }
+
+        .tier-btn .price {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            display: block;
+        }
+
+        .tier-btn .slogan {
+            font-size: 0.9rem;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
+        .tier-btn .item-count {
+            background: rgba(0, 0, 0, 0.12);
+            padding: 4px 10px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .tier-btn.active .item-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #FFF;
+        }
+
+        /* 復古扭蛋機造型 */
+        .gacha-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gacha-machine {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin: 10px 0 20px;
+        }
+
+        /* 扭蛋機頂蓋 */
+        .gacha-roof {
+            width: 220px;
+            height: 32px;
+            background: var(--retro-red);
+            border: var(--border-thick);
+            border-bottom: none;
+            border-radius: 30px 30px 0 0;
+            z-index: 2;
+        }
+
+        /* 透明球倉 */
+        .gacha-globe {
+            width: 250px;
+            height: 220px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(210,240,255,0.45) 100%);
+            border: var(--border-thick);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset -10px -10px 0px rgba(0,0,0,0.06);
+        }
+
+        /* 玻璃高光 */
+        .gacha-globe::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 18px;
+            width: 35px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            transform: rotate(-12deg);
+            pointer-events: none;
+        }
+
+        /* 內部扭蛋球 */
+        .capsule {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid var(--dark-ink);
+            position: absolute;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        /* 扭蛋球半白半彩造型 */
+        .capsule::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: #FFF;
+            border-top: 3px solid var(--dark-ink);
+            border-radius: 0 0 24px 24px;
+        }
+
+        .c1 { background: #FF595E; bottom: 8px; left: 18px; transform: rotate(-15deg); }
+        .c2 { background: #FFCA3A; bottom: 10px; left: 65px; transform: rotate(20deg); }
+        .c3 { background: #8AC926; bottom: 8px; left: 115px; transform: rotate(-8deg); }
+        .c4 { background: #1982C4; bottom: 12px; left: 165px; transform: rotate(32deg); }
+        .c5 { background: #6A4C93; bottom: 48px; left: 38px; transform: rotate(12deg); }
+        .c6 { background: #FF924C; bottom: 52px; left: 92px; transform: rotate(-25deg); }
+        .c7 { background: #00BBF9; bottom: 46px; left: 145px; transform: rotate(15deg); }
+        .c8 { background: #F15BB5; bottom: 88px; left: 70px; transform: rotate(-18deg); }
+        .c9 { background: #00F5D4; bottom: 86px; left: 122px; transform: rotate(28deg); }
+
+        /* 搖晃動畫 */
+        @keyframes shakeBall {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-15px, -35px) rotate(-40deg); }
+            50% { transform: translate(18px, -15px) rotate(45deg); }
+            75% { transform: translate(-10px, -45px) rotate(-25deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .shaking .capsule {
+            animation: shakeBall 0.35s infinite ease-in-out;
+        }
+        .shaking .c2, .shaking .c6 { animation-delay: 0.07s; }
+        .shaking .c3, .shaking .c8 { animation-delay: 0.14s; }
+
+        /* 機身下半部 */
+        .gacha-body {
+            width: 230px;
+            height: 190px;
+            background: var(--retro-red);
+            border: var(--border-thick);
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 16px;
+            box-shadow: inset -12px 0px 0px var(--retro-red-dark);
+        }
+
+        /* 旋轉旋鈕 */
+        .knob-plate {
+            width: 86px;
+            height: 86px;
+            background: #E0E0E0;
+            border: var(--border-thick);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+            position: relative;
+        }
+
+        .knob-plate.ready {
+            animation: pulseGlow 1.5s infinite;
+            background: var(--mustard);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 183, 3, 0.7), var(--shadow-sm); }
+            50% { box-shadow: 0 0 0 12px rgba(255, 183, 3, 0), var(--shadow-sm); }
+        }
+
+        .knob-handle {
+            width: 64px;
+            height: 22px;
+            background: #FFF;
+            border: 3px solid var(--dark-ink);
+            border-radius: 10px;
+        }
+
+        .knob-plate.turning {
+            transform: rotate(360deg);
+        }
+
+        /* 出球口 */
+        .exit-chute {
+            width: 90px;
+            height: 54px;
+            background: var(--dark-ink);
+            border: 3px solid #000;
+            border-radius: 14px 14px 8px 8px;
+            margin-top: auto;
+            margin-bottom: 12px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        /* 掉落出來的扭蛋 */
+        .dropped-ball {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 3px solid var(--dark-ink);
+            background: var(--mustard);
+            position: absolute;
+            transform: scale(0);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dropped-ball::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: #FFF;
+            border-top: 3px solid var(--dark-ink);
+            border-radius: 0 0 24px 24px;
+        }
+        .dropped-ball.show {
+            transform: scale(1.15) translateY(6px);
+        }
+
+        .gacha-hint {
+            font-weight: 900;
+            font-size: 1rem;
+            text-align: center;
+            color: var(--dark-ink);
+            background: var(--mustard);
+            border: 3px solid var(--dark-ink);
+            padding: 8px 16px;
+            border-radius: 99px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+        }
+
+        /* 下方管理抽屜區 */
+        .manage-section {
+            max-width: 960px;
+            width: 100%;
+            margin-top: 28px;
+        }
+
+        .add-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .input-text, .input-select {
+            border: 3px solid var(--dark-ink);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 700;
+            background: var(--bg-cream);
+        }
+        .input-text { flex: 1; min-width: 200px; }
+
+        .btn-action {
+            background: var(--teal);
+            color: #FFF;
+            border: 3px solid var(--dark-ink);
+            box-shadow: var(--shadow-sm);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-action:hover { filter: brightness(1.05); }
+        .btn-action:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--dark-ink); }
+        .btn-reset-menu { background: #6C757D; }
+
+        .restaurant-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            background: var(--bg-cream);
+            border: 2px solid var(--dark-ink);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--retro-red);
+            font-weight: 900;
+        }
+
+        /* 結果彈出視窗 Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(29, 45, 68, 0.75);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .result-card {
+            background: #FFF;
+            border: var(--border-thick);
+            box-shadow: 10px 10px 0px var(--dark-ink);
+            border-radius: 22px;
+            max-width: 440px;
+            width: 100%;
+            padding: 28px 24px;
+            text-align: center;
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-badge {
+            display: inline-block;
+            background: var(--mustard);
+            border: 2px solid var(--dark-ink);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-weight: 900;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .result-food {
+            font-size: 1.85rem;
+            font-weight: 900;
+            color: var(--retro-red);
+            margin: 14px 0 20px;
+            line-height: 1.35;
+            padding: 16px;
+            background: var(--bg-cream);
+            border: 3px dashed var(--dark-ink);
+            border-radius: 14px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-accept { background: var(--teal); color: #FFF; }
+        .btn-reroll { background: var(--mustard); color: var(--dark-ink); }
+        .btn-reroll:disabled {
+            background: #CCC;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .reroll-warning {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--retro-red);
+            font-weight: 700;
+            min-height: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部標題與狀態列 -->
+    <header>
+        <h1>🎰 今天吃什麼？復古扭蛋機</h1>
+        <div class="status-bar">
+            <div class="badge">
+                📅 今日剩餘重抽次數：<span class="count" id="rerollCountDisplay">3</span> / 3
+            </div>
+            <button class="dev-btn" id="resetLimitBtn" title="方便助教與開發者測試的重置按鈕">
+                🔧 開發者測試：重置今日次數
+            </button>
+        </div>
+    </header>
+
+    <!-- 主互動區 -->
+    <main class="main-container">
+        <!-- 左欄：步驟一 選擇預算 -->
+        <section class="panel">
+            <div class="panel-title">STEP 1. 摸摸荷包，選擇今日預算</div>
+            <div class="tier-list" id="tierList">
+                <!-- 由 JavaScript 動態渲染 5 個預算按鈕 -->
+            </div>
+        </section>
+
+        <!-- 右欄：步驟二 轉動扭蛋機 -->
+        <section class="panel gacha-wrapper">
+            <div class="panel-title" style="width:100%">STEP 2. 點擊旋鈕，抽出命定餐點！</div>
+            
+            <div class="gacha-machine" id="gachaMachine">
+                <div class="gacha-roof"></div>
+                <div class="gacha-globe" id="gachaGlobe">
+                    <div class="capsule c1"></div>
+                    <div class="capsule c2"></div>
+                    <div class="capsule c3"></div>
+                    <div class="capsule c4"></div>
+                    <div class="capsule c5"></div>
+                    <div class="capsule c6"></div>
+                    <div class="capsule c7"></div>
+                    <div class="capsule c8"></div>
+                    <div class="capsule c9"></div>
+                </div>
+                <div class="gacha-body">
+                    <div class="knob-plate ready" id="knobBtn" title="點擊轉動扭蛋！">
+                        <div class="knob-handle"></div>
+                    </div>
+                    <div class="exit-chute">
+                        <div class="dropped-ball" id="droppedBall"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gacha-hint" id="gachaTriggerText">
+                👆 點擊上方黃色旋鈕開始扭蛋！
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部：私房餐廳管理區 -->
+    <section class="panel manage-section">
+        <div class="panel-title">📝 私房餐廳名單管理（目前檢視：<span id="currentTierLabel" style="color:var(--retro-red)"></span>）</div>
+        
+        <div class="add-form">
+            <input type="text" id="newFoodInput" class="input-text" placeholder="輸入你想加入的私房餐廳或美食名稱...">
+            <select id="newFoodTier" class="input-select">
+                <option value="tier_1">&lt; $100 (月底吃土保命餐)</option>
+                <option value="tier_2">$100 - $300 (庶民的小確幸)</option>
+                <option value="tier_3">$300 - $800 (資本主義的味道)</option>
+                <option value="tier_4">$800 - $2000 (發薪日報復性消費)</option>
+                <option value="tier_5">$2000 - $5000 (財富自由 / 乾爹請客)</option>
+            </select>
+            <button class="btn-action" id="addFoodBtn">➕ 加入扭蛋池</button>
+            <button class="btn-action btn-reset-menu" id="restoreDefaultBtn">🔄 恢復預設菜單</button>
+        </div>
+
+        <div class="restaurant-tags" id="restaurantTags">
+            <!-- 動態渲染當前選擇預算區間的餐廳標籤 -->
+        </div>
+    </section>
+
+    <!-- 開獎結果彈窗 -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="result-card">
+            <div class="result-badge" id="modalTierBadge">預算區間</div>
+            <h2>🎉 命定餐點揭曉 🎉</h2>
+            <div class="result-food" id="modalFoodName">載入中...</div>
+            <div class="modal-btns">
+                <button class="btn-action btn-accept" id="acceptBtn">😋 收下旨意，出發去吃！</button>
+                <button class="btn-action btn-reroll" id="rerollBtn">🎲 不滿意，重抽！</button>
+            </div>
+            <div class="reroll-warning" id="rerollWarning"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 預設資料庫定義（含平民美食與陽明交大／新竹特色店家） ---
+        const DEFAULT_DB = {
+            tier_1: {
+                price: "< $100",
+                slogan: "月底吃土保命餐",
+                items: [
+                    "7-11 友善時光打折便當",
+                    "交大二餐滷肉飯＋燙青菜",
+                    "學府路無名饅頭肉排蛋",
+                    "冷凍水餃 15 顆自己煮",
+                    "城隍廟周邊古早味潤餅",
+                    "巷口陽春麵加滷蛋"
+                ]
+            },
+            tier_2: {
+                price: "$100 - $300",
+                slogan: "庶民的小確幸",
+                items: [
+                    "麥當勞雙層牛肉吉事堡套餐 (新竹美食代表)",
+                    "清夜立晉傳統豆花＋小洞天米腸香腸",
+                    "交大竹湖旁小木屋鬆餅＋紅茶",
+                    "璽子牛肉麵 (斤餅包牛肉)",
+                    "十一街麵食館 (葫蘆頭水餃)",
+                    "料多實在的台式粒粒分明蝦仁炒飯"
+                ]
+            },
+            tier_3: {
+                price: "$300 - $800",
+                slogan: "資本主義的味道",
+                items: [
+                    "壽司郎／藏壽司狂拿 10 盤",
+                    "段純貞牛肉麵豪華全餐＋滷味拼盤",
+                    "新竹巨城購物中心美食街主題餐廳",
+                    "竹北文興路精緻個人燒肉定食",
+                    "築間幸福鍋物（海陸雙拼）",
+                    "冪 La Miette 歐陸廚房義大利麵"
+                ]
+            },
+            tier_4: {
+                price: "$800 - $2000",
+                slogan: "發薪日報復性消費",
+                items: [
+                    "饗食天堂／旭集和食集錦吃到飽",
+                    "馬辣頂級麻辣鴛鴦火鍋（和牛吃到飽）",
+                    "新竹老爺酒店咖啡廳自助餐",
+                    "竹北高質感戰斧豬排餐酒館",
+                    "乾杯燒肉居酒屋（大口吃肉配生啤）"
+                ]
+            },
+            tier_5: {
+                price: "$2000 - $5000",
+                slogan: "財富自由 / 乾爹請客",
+                items: [
+                    "A Cut 牛排館（新竹國賓頂級乾式熟成肋眼）",
+                    "竹北高鐵特區無菜單板前江戶前壽司",
+                    "教父牛排體系頂級套餐",
+                    "新竹喜來登大飯店頂級鐵板燒龍蝦海陸大餐"
+                ]
+            }
+        };
+
+        // --- 2. 狀態與 localStorage 初始化 ---
+        const STORAGE_KEY_MENU = 'food_gacha_custom_list_v1';
+        const STORAGE_KEY_LIMIT = 'food_gacha_daily_limit_v1';
+
+        let menuDB = {};
+        let selectedTier = 'tier_2'; // 預設選中 $100-$300
+        let rerollsLeft = 3;
+        let isRolling = false;
+
+        function getTodayStr() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function initApp() {
+            // 載入菜單
+            const savedMenu = localStorage.getItem(STORAGE_KEY_MENU);
+            if (savedMenu) {
+                try {
+                    menuDB = JSON.parse(savedMenu);
+                } catch (e) {
+                    menuDB = JSON.parse(JSON.stringify(DEFAULT_DB));
+                }
+            } else {
+                menuDB = JSON.parse(JSON.stringify(DEFAULT_DB));
+            }
+
+            // 載入今日重抽次數（跨日自動重置）
+            const savedLimit = localStorage.getItem(STORAGE_KEY_LIMIT);
+            const today = getTodayStr();
+            if (savedLimit) {
+                try {
+                    const parsed = JSON.parse(savedLimit);
+                    rerollsLeft = (parsed.date === today) ? parsed.rerollsLeft : 3;
+                } catch (e) {
+                    rerollsLeft = 3;
+                }
+            } else {
+                rerollsLeft = 3;
+            }
+            saveLimitState();
+            renderAll();
+        }
+
+        function saveMenuState() {
+            localStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(menuDB));
+        }
+
+        function saveLimitState() {
+            localStorage.setItem(STORAGE_KEY_LIMIT, JSON.stringify({
+                date: getTodayStr(),
+                rerollsLeft: rerollsLeft
+            }));
+            document.getElementById('rerollCountDisplay').textContent = rerollsLeft;
+        }
+
+        // --- 3. Web Audio API 合成音效（無須外部音檔） ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function ensureAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playBeep(freq = 520, duration = 0.08, type = 'square') {
+            ensureAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // 機械齒輪轉動音效
+        function playCrankSound() {
+            const notes = [220, 260, 200, 280, 240, 300, 220, 320];
+            notes.forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.06, 'sawtooth'), idx * 120);
+            });
+        }
+
+        // 歡樂中獎音效
+        function playWinFanfare() {
+            const chord = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            chord.forEach((freq, idx) => {
+                setTimeout(() => playBeep(freq, 0.22, 'triangle'), idx * 110);
+            });
+        }
+
+        // --- 4. 介面渲染邏輯 ---
+        function renderAll() {
+            renderTierButtons();
+            renderRestaurantTags();
+            document.getElementById('newFoodTier').value = selectedTier;
+        }
+
+        function renderTierButtons() {
+            const container = document.getElementById('tierList');
+            container.innerHTML = '';
+
+            Object.keys(menuDB).forEach(key => {
+                const tier = menuDB[key];
+                const btn = document.createElement('button');
+                btn.className = `tier-btn ${key === selectedTier ? 'active' : ''}`;
+                btn.innerHTML = `
+                    <div>
+                        <span class="price">${tier.price}</span>
+                        <span class="slogan">${tier.slogan}</span>
+                    </div>
+                    <span class="item-count">${tier.items.length} 間候選</span>
+                `;
+                btn.addEventListener('click', () => {
+                    playBeep(600, 0.06, 'sine');
+                    selectedTier = key;
+                    renderAll();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function renderRestaurantTags() {
+            const currentTierObj = menuDB[selectedTier];
+            document.getElementById('currentTierLabel').textContent = `${currentTierObj.price} ${currentTierObj.slogan}`;
+            const tagContainer = document.getElementById('restaurantTags');
+            tagContainer.innerHTML = '';
+
+            if (currentTierObj.items.length === 0) {
+                tagContainer.innerHTML = `<p style="color:#888; font-weight:700;">⚠️ 此預算區間目前沒有任何餐廳，請從上方表單新增！</p>`;
+                return;
+            }
+
+            currentTierObj.items.forEach((foodName, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `
+                    <span>🍴 ${foodName}</span>
+                    <button title="刪除此餐廳" data-idx="${index}">✖</button>
+                `;
+                tag.querySelector('button').addEventListener('click', () => {
+                    playBeep(300, 0.08, 'sine');
+                    menuDB[selectedTier].items.splice(index, 1);
+                    saveMenuState();
+                    renderAll();
+                });
+                tagContainer.appendChild(tag);
+            });
+        }
+
+        // --- 5. 扭蛋抽獎核心流程 ---
+        function spinGacha(isReroll = false) {
+            if (isRolling) return;
+
+            const pool = menuDB[selectedTier].items;
+            if (!pool || pool.length === 0) {
+                alert('⚠️ 這個預算區間已經空空如也啦！快去下方新增幾間私房餐廳吧！');
+                return;
+            }
+
+            if (isReroll) {
+                if (rerollsLeft <= 0) return;
+                rerollsLeft--;
+                saveLimitState();
+                document.getElementById('resultModal').classList.remove('active');
+            }
+
+            isRolling = true;
+            const knob = document.getElementById('knobBtn');
+            const globe = document.getElementById('gachaGlobe');
+            const droppedBall = document.getElementById('droppedBall');
+
+            // 啟動轉動與震動動畫
+            droppedBall.classList.remove('show');
+            knob.classList.add('turning');
+            globe.classList.add('shaking');
+            playCrankSound();
+
+            setTimeout(() => {
+                knob.classList.remove('turning');
+                globe.classList.remove('shaking');
+                droppedBall.classList.add('show');
+
+                // 隨機抽出一間餐廳
+                const chosenFood = pool[Math.floor(Math.random() * pool.length)];
+
+                setTimeout(() => {
+                    showResultModal(chosenFood);
+                    isRolling = false;
+                }, 400);
+            }, 1100);
+        }
+
+        function showResultModal(foodName) {
+            const tierObj = menuDB[selectedTier];
+            document.getElementById('modalTierBadge').textContent = `${tierObj.price}｜${tierObj.slogan}`;
+            document.getElementById('modalFoodName').textContent = foodName;
+
+            const rerollBtn = document.getElementById('rerollBtn');
+            const warning = document.getElementById('rerollWarning');
+
+            rerollBtn.textContent = `🎲 不滿意，重抽！（剩餘 ${rerollsLeft} 次）`;
+            if (rerollsLeft <= 0) {
+                rerollBtn.disabled = true;
+                warning.textContent = '做人不能太挑食！今天已經沒機會反悔囉，乖乖去吃吧！';
+            } else {
+                rerollBtn.disabled = false;
+                warning.textContent = '';
+            }
+
+            document.getElementById('resultModal').classList.add('active');
+            playWinFanfare();
+
+            // 觸發彩帶特效
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 90,
+                    spread: 75,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // --- 6. 事件綁定 ---
+        document.getElementById('knobBtn').addEventListener('click', () => spinGacha(false));
+        document.getElementById('gachaTriggerText').addEventListener('click', () => spinGacha(false));
+
+        document.getElementById('acceptBtn').addEventListener('click', () => {
+            playBeep(700, 0.08, 'sine');
+            document.getElementById('resultModal').classList.remove('active');
+            document.getElementById('droppedBall').classList.remove('show');
+        });
+
+        document.getElementById('rerollBtn').addEventListener('click', () => {
+            spinGacha(true);
+        });
+
+        // 新增私房餐廳
+        document.getElementById('addFoodBtn').addEventListener('click', () => {
+            const input = document.getElementById('newFoodInput');
+            const targetTier = document.getElementById('newFoodTier').value;
+            const name = input.value.trim();
+
+            if (!name) {
+                alert('請先輸入餐廳或美食名稱喔！');
+                return;
+            }
+
+            menuDB[targetTier].items.push(name);
+            selectedTier = targetTier;
+            input.value = '';
+            playBeep(800, 0.1, 'triangle');
+            saveMenuState();
+            renderAll();
+        });
+
+        // 支援按 Enter 新增
+        document.getElementById('newFoodInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('addFoodBtn').click();
+        });
+
+        // 恢復原廠預設菜單
+        document.getElementById('restoreDefaultBtn').addEventListener('click', () => {
+            if (confirm('確定要將所有預算區間恢復成預設的平民與新竹美食菜單嗎？')) {
+                menuDB = JSON.parse(JSON.stringify(DEFAULT_DB));
+                saveMenuState();
+                renderAll();
+                playBeep(500, 0.1, 'sine');
+            }
+        });
+
+        // 開發者／助教重置次數按鈕
+        document.getElementById('resetLimitBtn').addEventListener('click', () => {
+            rerollsLeft = 3;
+            saveLimitState();
+            playBeep(880, 0.12, 'sine');
+            alert('✅ 今日重抽次數已重置為 3 次！');
+        });
+
+        // 啟動應用
+        initApp();
+    </script>
+</body>
+</html>
